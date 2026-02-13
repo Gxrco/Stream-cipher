@@ -8,6 +8,16 @@ CÓDIGO VALIDADO CON IA y COMENTARIOS GENERADOS POR IA
 
 import random
 
+def bytes_a_hex(data):
+    """Convierte bytes a representación hexadecimal."""
+    return data.hex()
+
+
+def hex_a_bytes(hex_string):
+    """Convierte string hexadecimal a bytes."""
+    return bytes.fromhex(hex_string)
+
+
 def generar_keystream(clave, longitud):
     """
     Genera un keystream pseudoaleatorio de la longitud especificada.
