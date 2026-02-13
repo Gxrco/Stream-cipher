@@ -4,6 +4,7 @@ Stream Cipher - Implementación Básica
 Parte 1: Implementación del Stream Cipher
 
 CÓDIGO VALIDADO CON IA y COMENTARIOS GENERADOS POR IA
+PROMPT: Genera los comentarios de las funciones implementadas y verifica el código colocando @TODO a todas las funciones que requieran cambios sin realizar la mejoras.
 """
 
 import random
@@ -44,3 +45,57 @@ def generar_keystream(clave, longitud):
     
     return keystream
 
+
+def cifrar(mensaje, clave):
+    """
+    Cifra un mensaje en texto plano usando XOR con el keystream.
+    
+    Requisitos:
+    - Acepta mensaje en texto plano y clave como parámetros
+    - Genera el keystream apropiado
+    - Aplica XOR bit a bit entre el mensaje y el keystream
+    - Retorna el texto cifrado
+    
+    Args:
+        mensaje (str): Mensaje en texto plano a cifrar
+        clave (int): Clave para generar el keystream
+    
+    Returns:
+        bytes: Texto cifrado
+    """
+    mensaje_bytes = mensaje.encode('utf-8')
+    
+    longitud = len(mensaje_bytes)
+    keystream = generar_keystream(clave, longitud)
+    
+    texto_cifrado = bytes([m ^ k for m, k in zip(mensaje_bytes, keystream)])
+    
+    return texto_cifrado
+
+
+def descifrar(texto_cifrado, clave):
+    """
+    Descifra el mensaje cifrado usando la misma clave.
+    
+    Requisitos:
+    - Acepta texto cifrado y clave como parámetros
+    - Genera el mismo keystream usado en el cifrado
+    - Aplica XOR para recuperar el mensaje original
+    - Verifica que el descifrado reproduce exactamente el texto plano original
+    
+    Args:
+        texto_cifrado (bytes): Texto cifrado a descifrar
+        clave (int): Clave utilizada en el cifrado
+    
+    Returns:
+        str: Mensaje original descifrado
+    """
+
+    longitud = len(texto_cifrado)
+    keystream = generar_keystream(clave, longitud)
+
+    mensaje_bytes = bytes([c ^ k for c, k in zip(texto_cifrado, keystream)])
+    
+    mensaje_original = mensaje_bytes.decode('utf-8')
+    
+    return mensaje_original
