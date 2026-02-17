@@ -82,7 +82,7 @@ def descifrar(texto_cifrado, clave):
     - Genera el mismo keystream usado en el cifrado
     - Aplica XOR para recuperar el mensaje original
     - Verifica que el descifrado reproduce exactamente el texto plano original
-    
+
     Args:
         texto_cifrado (bytes): Texto cifrado a descifrar
         clave (int): Clave utilizada en el cifrado
@@ -99,3 +99,28 @@ def descifrar(texto_cifrado, clave):
     mensaje_original = mensaje_bytes.decode('utf-8')
     
     return mensaje_original
+
+
+"""
+Sección de pruebas para completar las partes documentadas.
+"""
+#print(generar_keystream(10101010, 10))
+#print(generar_keystream(30303030, 10))
+
+#keyRepetida = generar_keystream(101010, 10)
+#mensaje1 = "ESTE ES EL MENSAJE DE AYER"
+#mensaje2 = "ESTE ES EL MENSAJE DE HOY"
+#
+#cifrado1 = cifrar(mensaje=mensaje1, clave=keyRepetida)
+#cifrado2 = cifrar(mensaje=mensaje2, clave=keyRepetida)
+#
+#print(f'Cifrado 1: {cifrado1} \n Cifrado 2: {cifrado2}')
+
+longitudes = (10, 100, 1000, 10000)
+seed = 10101010101010
+j = 1
+for i in longitudes:
+    xK = generar_keystream(seed, i)
+    print(f'{j}. Usando longitud {i} resultado en {xK} ')
+    print(f'Intentado cifrar {cifrar("PRUEBA", xK)} \n')
+    j += 1    
