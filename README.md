@@ -78,3 +78,90 @@ Resultado:
 Se observa que al cambiar el código de la función para recibir cualquier keystream previamente generada se obtiene exactamente el mismo resultado, esto se debe a la naturaleza de la operacón XOR.
 
 Esto quiere decir que sin importar cual fuese el keystream lo único importante es que sea del mismo tamaño de la palabra a cifrar. Ni más grande, para no generar innecesariamente, ni muy pequeño, para realizar ajustes.
+
+### 4. Consideraciones prácticas
+
+**1. Generador Criptográfico**: Nunca usar `random.random()` se considera predecible y vulnerable. Usar CSPRNG como `secrets.token_bytes()` u `os.urandom()` que resisten análisis criptográfico.
+
+**2. Gestión de Claves**: Claves deben tener mínimo 128 bits, generarse con CSPRNG, y almacenarse en sistemas seguros (KMS/HSM). Nunca hardcodear claves o usar valores débiles como "12345". Implementar rotación periódica y controles de acceso estrictos.
+
+**3. No Reutilizar Keystreams**: Usar nonce/IV único por mensaje. La reutilización permite que atacantes obtengan M1⊕M2 sin conocer la clave. Implementar nonces de 96-128 bits, transmitirlos con el mensaje cifrado.
+
+**Recomendación final**: En producción real, usar bibliotecas establecidas (`cryptography`, `libsodium`) en lugar de implementaciones propias. "Don't roll your own crypto".
+
+## Parte 03: Ejemplos y Pruebas
+
+### 3.1 Ejemplos de Entrada/Salida
+
+#### Ejemplo 1 — Mensaje corto
+
+| Campo            | Valor                      |
+|------------------|----------------------------|
+| Texto plano      | `Hola Mundo`               |
+| Clave            | `99887766`                 |
+| Cifrado (hex)    | `958ed840d855f9ccfa43`     |
+| Cifrado (base64) | `lY7YQNhV+cz6Qw==`         |
+| Descifrado       | `Hola Mundo`               |
+
+```python
+clave = 99887766
+cifrado = cifrar("Hola Mundo", clave)
+# b'\x95\x8e\xd8@\xd8U\xf9\xcc\xfaC'
+descifrado = descifrar(cifrado, clave)
+# 'Hola Mundo'
+```
+
+#### Ejemplo 2 — Mensaje de longitud media
+
+| Campo            | Valor                                      |
+|------------------|--------------------------------------------|
+| Texto plano      | `Cifrado de flujo con XOR`                 |
+| Clave            | `11223344`                                 |
+| Cifrado (hex)    | `694048c2fb1bdbb216ad1013e3ae86361d70930a2ced109a` |
+| Cifrado (base64) | `aUBIwvsb27IWrRAT466GNh1wkwos7RCa`         |
+| Descifrado       | `Cifrado de flujo con XOR`                 |
+
+```python
+clave = 11223344
+cifrado = cifrar("Cifrado de flujo con XOR", clave)
+# b'iH@\xc2\xfb\x1b\xdb\xb2\x16\xad\x10\x13\xe3\xae\x866\x1dp\x93\n,\xed\x10\x9a'
+descifrado = descifrar(cifrado, clave)
+# 'Cifrado de flujo con XOR'
+```
+
+#### Ejemplo 3 — Mensaje largo con caracteres especiales
+
+| Campo            | Valor                                                        |
+|------------------|--------------------------------------------------------------|
+| Texto plano      | `Universidad del Valle de Guatemala - 2025`                  |
+| Clave            | `55443322`                                                   |
+| Cifrado (hex)    | `6f864a6c8fa628616a3df0474ef81b373cd0bf8787a701ea2052f036e34de9b52efbb844c6e9398e64` |
+| Cifrado (base64) | `b4ZKbI+mKGFqPfBHTvgbNzzQv4eHpwHqIFLwNuNN6bUu+7hExuk5jmQ=` |
+| Descifrado       | `Universidad del Valle de Guatemala - 2025`                  |
+
+```python
+clave = 55443322
+cifrado = cifrar("Universidad del Valle de Guatemala - 2025", clave)
+descifrado = descifrar(cifrado, clave)
+# 'Universidad del Valle de Guatemala - 2025'
+```
+
+### 3.2 Pruebas Unitarias
+
+Las pruebas unitarias se encuentran en el archivo `tests.py` y pueden ejecutarse con:
+
+```bash
+python3 -m pytest tests.py -v
+# o bien
+python3 tests.py
+```
+
+Las pruebas cubren los siguientes casos:
+
+| Prueba | Descripción |
+|--------|-------------|
+| `test_descifrado_recupera_original` | El descifrado con la misma clave produce exactamente el mensaje original |
+| `test_diferentes_claves_diferentes_cifrados` | Dos claves distintas producen textos cifrados distintos para el mismo mensaje |
+| `test_misma_clave_mismo_cifrado` | La misma clave siempre produce el mismo cifrado (determinismo) |
+| `test_mensajes_diferentes_longitudes` | El cifrado/descifrado funciona correctamente para mensajes de distintas longitudes |
+
